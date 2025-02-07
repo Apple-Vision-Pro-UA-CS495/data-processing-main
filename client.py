@@ -1,13 +1,22 @@
-import requests
+import websocket
+import base64
 
-# Simulate sending an image from the Vision Pro to the local server
-def send_image_to_server(image_path):
-    url = "http://localhost:8000/process"
-    with open(image_path, "rb") as file:
-        files = {"file": (image_path, file, "image/jpeg")}
-        response = requests.post(url, files=files)
-    return response.json()
+#WebSocket server URL
+ws_url = "ws://127.0.0.1:8000/ws"
 
-# Test with a sample image (replace "test_image.jpg" with your image)
-result = send_image_to_server("temp.jpg")
-print("AI Result:", result)
+#Convert image to base64
+with open("temp.jpg", "rb") as image_file:
+    encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+#Establish connection
+ws = websocket.create_connection(ws_url)
+
+#Send message
+ws.send(encoded_image)
+
+#Receive the response
+result = ws.recv()
+print("Server response:", result)
+
+# Close connection
+ws.close()

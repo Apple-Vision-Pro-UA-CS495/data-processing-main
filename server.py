@@ -1,22 +1,30 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from transformers import pipeline
 from PIL import Image
 import io
+import base64
 
 app = FastAPI()
 
-# Load a Hugging Face model 
+# Load Hugging Face model 
 model = pipeline("image-classification", model="google/vit-base-patch16-224")
 
-@app.post("/process")
-async def process_image(file: UploadFile = File(...)):
-    try:
-        # Read the image
-        image_data = await file.read()
-        image = Image.open(io.BytesIO(image_data))
-        
-        # Run inference
-        result = model(image)
-        return {"result": result}
-    except Exception as e:
-        return {"error": str(e)}
+@app.websocket("/ws")
+async def process_image(websocket: WebSocket):
+    #Establish connection
+    await websocket.accept()
+
+    #Get data
+    base64_image = await websocket.receive_text()
+
+    #Decode from base64
+    image_data = base64.b64decode(base64_image)
+    
+    #Convert to image
+    image = Image.open(io.BytesIO(image_data))
+    
+    #Run inference
+    result = model(image)  
+
+    #Return result
+    await websocket.send_json({"result": result})  
