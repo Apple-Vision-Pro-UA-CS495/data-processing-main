@@ -9,7 +9,7 @@ app = FastAPI()
 # Load Hugging Face model 
 model = pipeline("image-classification", model="google/vit-base-patch16-224")
 
-@app.websocket("/ws")
+@app.websocket("/wss")
 async def process_image(websocket: WebSocket):
     #Establish connection
     await websocket.accept()
