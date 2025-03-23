@@ -1,3 +1,6 @@
+#This is the python code for a lambda function that runs the image processing models. 
+#Dependencies must be uploaded as lambda layers and you must also have a lambda size large enough to allow storing or downloading the model at run time
+
 import json
 import base64
 from PIL import Image
