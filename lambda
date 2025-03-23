@@ -1,0 +1,25 @@
+import json
+import base64
+from PIL import Image
+import io
+import os
+from transformers import pipeline
+
+os.environ["TRANSFORMERS_CACHE"] = "/tmp"
+
+
+def lambda_handler(event, context):
+    # Decode the base64 string from the event
+    base64_string = event['img']
+    image_data = base64.b64decode(base64_string)
+    
+    # Convert the binary data to an image
+    image = Image.open(io.BytesIO(image_data))
+    model = pipeline("image-classification", model="jazzmacedo/fruits-and-vegetables-detector-36")
+    result = model(image)  
+    
+    # Return the prediction as a response
+    return {
+        'statusCode': 200,
+        'body': json.dumps(result)
+    }
