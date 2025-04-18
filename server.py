@@ -6,6 +6,7 @@ import base64
 import json
 
 app = FastAPI()
+
 MAX_MB = 25
 MAX_IMAGE_SIZE_BYTES = MAX_MB * 1024 * 1024
 
@@ -21,6 +22,13 @@ async def process_image(websocket: WebSocket):
             try:
                 #Get data
                 raw_data = await websocket.receive_text()
+
+                if len(raw_data.encode('utf-8')) > MAX_IMAGE_SIZE_BYTES:
+                    await websocket.send_json({
+                        "error": f"Image size exceeds the maximum allowed limit of {MAX_MB} MB."
+                    })
+                    continue
+
                 try:
                     json_data = json.loads(raw_data)
                 except json.JSONDecodeError:
@@ -28,13 +36,7 @@ async def process_image(websocket: WebSocket):
                         "error": "Invalid JSON format"
                     })
                     continue
-                
-                size_in_bytes = len(json_data.encode('utf-8'))
-                if size_in_bytes > MAX_IMAGE_SIZE_BYTES:
-                    error_message = f"Image size exceeds the maximum allowed limit of {MAX_MB} MB."
-                    await websocket.send_json({"error": error_message})
-                    raise ValueError(error_message)
-                
+
                 # Validate message structure
                 if "type" not in json_data or "data" not in json_data:
                     await websocket.send_json({
@@ -73,7 +75,7 @@ async def process_image(websocket: WebSocket):
             except WebSocketDisconnect:
                 break
             except Exception as e:
-                print(f"error: {e}")
-                await websocket.send_json({"error": "Websocket error"})
+                print(f"Unexpected error: {e}")
+                await websocket.send_json({"error": "Internal server error"})
     finally:
         await websocket.close()
