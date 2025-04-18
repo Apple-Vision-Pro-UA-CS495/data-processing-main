@@ -12,7 +12,7 @@ MAX_IMAGE_SIZE_BYTES = MAX_MB * 1024 * 1024
 # Load Hugging Face model 
 model = pipeline("image-classification", model="google/vit-base-patch16-224")
 
-@app.websocket("/wss")
+@app.websocket("/ws")
 async def process_image(websocket: WebSocket):
     #Establish connection
     await websocket.accept()
